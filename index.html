@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRM Wi-Fi QuickConnect</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        body { font-family: -apple-system, system-ui, sans-serif; max-width: 450px; margin: 20px auto; padding: 15px; background: #f0f2f5; color: #333; }
+        .card { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-align: center; }
+        .logo { font-size: 40px; margin-bottom: 10px; }
+        h2 { margin: 5px 0; color: #0052cc; }
+        input { width: 90%; padding: 14px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        button { background: #0052cc; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; width: 90%; cursor: pointer; margin-top: 10px; }
+        .bookmarklet { display: block; background: #fff3cd; color: #856404; font-weight: bold; padding: 12px; margin: 15px auto; border-radius: 8px; text-decoration: none; border: 2px dashed #ffeeba; width: 85%; }
+        .steps { text-align: left; background: #e2e3e5; padding: 15px; border-radius: 8px; font-size: 13px; line-height: 1.5; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="logo">⚡</div>
+    <h2>SRM Wi-Fi Connect</h2>
+    <p style="font-size: 14px; color: #666;">One-click cross-platform login generator</p>
+    
+    <input type="text" id="username" placeholder="Registration Number / NetID">
+    <input type="password" id="password" placeholder="Wi-Fi Password">
+    <button onclick="generateAndSave()">Generate Setup</button>
+
+    <div id="outputSection" style="display:none;">
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+        <p><strong>Step 2: Drag or Copy your Shortcut</strong></p>
+        <a id="bookmarkLink" class="bookmarklet" href="#">🚀 Drag to Bookmarks / Copy Link</a>
+        
+        <div class="steps">
+            <strong>📲 How to use across devices:</strong><br>
+            • <strong>Laptop:</strong> Drag the yellow button directly to your browser's Bookmark Bar.<br>
+            • <strong>iPhone / Android:</strong> Bookmark any random page, edit it, rename it to "SRM Login", and paste the copied link code as the URL.<br><br>
+            <strong>🔥 The Trick:</strong> Next time SRM Wi-Fi disconnects and throws the login page, just tap this bookmark. It logs you in instantly!
+        </div>
+    </div>
+</div>
+
+<script>
+// Register the background service worker for offline app usage
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+}
+
+// Auto-load credentials if previously saved locally on the device
+window.onload = function() {
+    if(localStorage.getItem('srm_user')) {
+        document.getElementById('username').value = localStorage.getItem('srm_user');
+        document.getElementById('password').value = localStorage.getItem('srm_pass');
+        generateAndSave();
+    }
+}
+
+function generateAndSave() {
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    
+    if(!user || !pass) return alert("Please fill both fields!");
+
+    // Local storage retention so user doesn't type it again on this device
+    localStorage.setItem('srm_user', user);
+    localStorage.setItem('srm_pass', pass);
+
+    // The universal script execution payload
+    const automationCode = `javascript:(function(){
+        const u = document.querySelector('input[name="username"]') || document.getElementById('username') || document.querySelector('input[type="text"]');
+        const p = document.querySelector('input[name="password"]') || document.getElementById('password') || document.querySelector('input[type="password"]');
+        const s = document.querySelector('input[type="submit"]') || document.querySelector('button[type="submit"]') || document.querySelector('.btn');
+        if(u && p){ u.value="${user}"; p.value="${pass}"; if(s)s.click(); }
+        else{ alert("Open this bookmark only when you see the SRM login screen!"); }
+    })();`;
+
+    const linkElement = document.getElementById('bookmarkLink');
+    linkElement.href = automationCode.replace(/\s+/g, ' ');
+    document.getElementById('outputSection').style.display = 'block';
+}
+</script>
+
+</body>
+</html>
